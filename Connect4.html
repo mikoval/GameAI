@@ -1,0 +1,93 @@
+<html>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+<style>
+body{
+    margin:20px;
+}
+</style>
+<body>
+<canvas id="Canvas" width= "700px" height = "700px">
+Your browser does not support the canvas element.
+</canvas>
+<br>
+
+<button type = "button" id = "restart">Restart</button>
+</body>
+<script>
+//canvas and context are used to manipulate the screen
+var canvas = document.getElementById("Canvas");
+var context = canvas.getContext("2d");
+//width and height are dimensions of the grid (game)
+var width = 7;
+var height = 6;
+//offset for the area above the game for buttons
+var vOffset = 100;
+// the dimensions for each piece of the grid. should be a square but calculating just in case. 
+var vSize = 600/height;
+var hSize = 700/width;
+// grid that stores the game state. might want to switch to an object if we want to store more information
+var grid;
+// the current player. using p1 and p2 because its more readable than true/false. 
+var turn = "p1";
+// if there is a current game going on. useful for handling actions if the game is over. 
+var CurrentGame = false;
+CreateWorld()
+//sets the player, sets the current game state, initializes the grid and then displays it. 
+function CreateWorld(){
+    turn = "p1";
+    CurrentGame = true;
+    grid = createGrid(width, height);
+    display(grid);
+    
+}
+// just creates a grid with the input dimensions and puts a "_" for each starting position showing that it is available. 
+function createGrid(width, height){
+    var arr = []
+    for(var i = 0; i < width; i++)
+    {   
+        arr.push([])
+        for(var j = 0; j < height; j++){
+			if(Math.random() > 0.5){arr[i].push("R");}
+            else if(Math.random() > 0.5){arr[i].push("B");}
+			else{ arr[i].push("_")}
+        }
+    }
+	console.log(arr);
+    return arr;
+}
+// this function has to be called every time the game state is updated. 
+function display(grid){
+	//draw a rectangle at the start
+    context.fillStyle = "#AAAAAA";
+    context.fillRect(0,vOffset, 700, 600 )
+
+    
+    context.fillStyle = "#FF0000";       
+    context.font = hSize + "px Arial";
+    for(var x  = 0; x < grid.length; x++){
+		//for each column draw a circle for the drop button
+		context.beginPath();
+		context.arc(x*hSize + hSize/2, vSize/2, hSize/3, 0, 2 * Math.PI, false);
+		context.fillStyle = 'green';
+		context.fill();
+		context.lineWidth = 5;
+		context.strokeStyle = '#003300';
+		context.stroke();
+        for(var y = 0; y < grid[0].length; y++){
+            //for each x,y create the correct circle.(black, red, white)
+			context.beginPath();
+			context.arc(x*hSize + hSize/2,  y*vSize + vSize/2 + vOffset, hSize/3, 0, 2 * Math.PI, false);
+			if(grid[x][y] == "R"){context.fillStyle = 'red';}
+			else if(grid[x][y] == "B"){context.fillStyle = 'black';}
+			else{context.fillStyle = '#FFFFFF';}
+			
+			context.fill();
+			
+        }
+    }
+}
+
+</script>
+</html>
+
+
