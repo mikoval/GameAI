@@ -28,13 +28,14 @@ var hSize = 700/width;
 // grid that stores the game state. might want to switch to an object if we want to store more information
 var grid;
 // the current player. using p1 and p2 because its more readable than true/false. 
-var turn = "p1";
+
+var turn;
 // if there is a current game going on. useful for handling actions if the game is over. 
 var CurrentGame = false;
 CreateWorld()
 //sets the player, sets the current game state, initializes the grid and then displays it. 
 function CreateWorld(){
-    turn = "p1";
+    turn = 0;
     CurrentGame = true;
     grid = createGrid(width, height);
     display(grid);
@@ -47,9 +48,7 @@ function createGrid(width, height){
     {   
         arr.push([])
         for(var j = 0; j < height; j++){
-			if(Math.random() > 0.5){arr[i].push("R");}
-            else if(Math.random() > 0.5){arr[i].push("B");}
-			else{ arr[i].push("_")}
+			arr[i].push("_")
         }
     }
 	console.log(arr);
@@ -60,16 +59,14 @@ function display(grid){
 	//draw a rectangle at the start
     context.fillStyle = "#AAAAAA";
     context.fillRect(0,vOffset, 700, 600 )
-
-    
-    context.fillStyle = "#FF0000";       
     context.font = hSize + "px Arial";
     for(var x  = 0; x < grid.length; x++){
 		//for each column draw a circle for the drop button
+		context.fillStyle = "green";     
 		context.beginPath();
 		context.arc(x*hSize + hSize/2, vSize/2, hSize/3, 0, 2 * Math.PI, false);
-		context.fillStyle = 'green';
 		context.fill();
+		context.fillStyle = 'green';
 		context.lineWidth = 5;
 		context.strokeStyle = '#003300';
 		context.stroke();
@@ -85,8 +82,65 @@ function display(grid){
 			
         }
     }
+
 }
 
+// all of the click commands
+window.addEventListener('click', click, false);
+function click(e){
+    if(turn == "p2" || !CurrentGame){return;}
+    var pos = getMousePos(canvas, e);
+    var x = pos.x;
+    var y = pos.y;
+    if(x < 0 || x > 700){return;}
+    if(y < 0 || y > 100){return;}
+    var move = getMove(x,y);
+	if(!move){return;}
+	if(makeMove(grid, move, turn))
+	{
+		turn = (turn + 1 )%2;
+	}
+    display(grid);
+   
+    
+}
+function getMousePos(canvas, evt) {
+    var rect = canvas.getBoundingClientRect();
+    return {
+      x: evt.clientX - rect.left,
+      y: evt.clientY - rect.top
+    };
+}
+function getMove(x,y){
+	for(var i = 0; i < width; i++)
+	{
+		circleX = i * hSize + hSize/2; 
+		circleY = vSize/2;
+		diffX = circleX - x;
+		diffY = circleY - y
+		if(Math.sqrt(diffX * diffX + diffY * diffY )  < hSize /3)
+		{
+			return i;
+		}
+	}
+}
+function makeMove(game, move, currentTurn){
+	var color = getColor(currentTurn)
+	for(var i = game[move].length-1; i >= 0; i-- ){
+		if(game[move][i] == "_")
+		{
+			game[move][i] = color;
+			return true;
+		}
+		
+	}
+	return false;
+}
+function getColor(turn){
+	if(turn == 0){return "R";}
+	else if (turn == 1){return "B"}
+	else{return "_"}
+}
 </script>
 </html>
 
