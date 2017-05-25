@@ -79,7 +79,6 @@ var maxDepth = 1;
 CreateWorld()
 //sets the player, sets the current game state, initializes the grid and then displays it. 
 function CreateWorld(){
-    turn = 0;
     CurrentGame = true;
     grid = createGrid(width, height);
     display(grid);
@@ -164,7 +163,9 @@ function click(e){
     else{return;}
     display(grid);
 	if(complete(grid)){
+		console.log(grid)
 		var score = gameValue(grid);
+		console.log(score);
 		if(score > 0){setTimeout(function(){alert("You Win")} ,0)}
 		else if(score < 0){setTimeout(function(){alert("You Lose")}, 0)}
 		else{setTimeout(function(){alert("Tie")}, 0)}
@@ -226,13 +227,15 @@ function getMoves(game){
     return moves;
 }
 function calculateTurn(){
-   
+
     minimax(grid, 0, turn);
     makeMove(grid, choice, turn);
     turn = (turn + 1) %2
     display(grid);
     if(complete(grid)){
 		var score = gameValue(grid);
+		console.log(grid)
+		console.log(score)
 		if(score > 0){setTimeout(function(){alert("You Win")} ,0)}
 		else if(score < 0){setTimeout(function(){alert("You Lose")}, 0)}
 		else{setTimeout(function(){alert("Tie")}, 0)}
@@ -711,5 +714,4 @@ function complete(grid){
 }
 </script>
 </html>
-
 
