@@ -4,14 +4,58 @@
 body{
     margin:20px;
 }
+#grey-cover{
+	width:700px; height:700px; background-color: gray; opacity:0.8; position:absolute; top:20px; left:20px;
+}
+#select-menu{
+	width:400px; height:200px; background-color:white; position:absolute; top:300px; left:160px; border-radius:10px; display:block; opacity:1.0; text-align:center
+}
+#first{
+	background:    #6aa84f;
+	background:    -webkit-linear-gradient(#6aa84f, #274e13);
+	background:    linear-gradient(#6aa84f, #274e13);
+	border-radius: 20px;
+	width:         150px;
+	height:		   50px;
+	color:         #ffffff;
+	display:       inline-block;
+	font:          normal 700 27px/1 "Calibri", sans-serif;
+	text-align:    center;
+	text-shadow:   1px 1px #000000;
+	margin-top:50px;
+}
+#second{
+	background:    #6aa84f;
+	background:    -webkit-linear-gradient(#6aa84f, #274e13);
+	background:    linear-gradient(#6aa84f, #274e13);
+	border-radius: 20px;
+	width:         150px;
+	height:		   50px;
+	color:         #ffffff;
+	display:       inline-block;
+	font:          normal 700 27px/1 "Calibri", sans-serif;
+	text-align:    center;
+	text-shadow:   1px 1px #000000;
+	margin-top:50px;
+}
 </style>
 <body>
 <canvas id="Canvas" width= "700px" height = "700px">
 Your browser does not support the canvas element.
 </canvas>
 <br>
-
+<br>
+Difficulty: <input type="range" id="difficulty-slider" style = "width: 100px; display: inline-block" value="1" min = "1" max = "6"> <p style = "display:inline-block" id = "difficulty-text">1</p>
+<br>
 <button type = "button" id = "restart">Restart</button>
+<div id = "grey-cover" class = "menu-item">
+	
+</div>
+<div id = "select-menu" class = "menu-item">
+	<h3>Select if you would like to play first or second</h3>
+	<button type = "button" id = "first"> First</button>
+	<button type = "button" id = "second"> Second</button>
+</div>
 </body>
 <script>
 //canvas and context are used to manipulate the screen
@@ -28,10 +72,10 @@ var hSize = 700/width;
 // grid that stores the game state. might want to switch to an object if we want to store more information
 var grid;
 // the current player. using p1 and p2 because its more readable than true/false. 
-
 var turn;
 // if there is a current game going on. useful for handling actions if the game is over. 
 var CurrentGame = false;
+var maxDepth = 1;
 CreateWorld()
 //sets the player, sets the current game state, initializes the grid and then displays it. 
 function CreateWorld(){
@@ -51,7 +95,6 @@ function createGrid(width, height){
 			arr[i].push("_")
         }
     }
-
     return arr;
 }
 // this function has to be called every time the game state is updated. 
@@ -82,9 +125,29 @@ function display(grid){
 			
         }
     }
-
 }
+$("#difficulty-slider").on("change", function(){
+    var val = $(this).val() 
 
+    $("#difficulty-text").text(val);
+    maxDepth = val;
+
+})
+$("#restart").on("click", function(){
+	console.log('restarting')
+	CreateWorld();
+});
+$("#first").on("click", function(){
+	$(".menu-item").hide();
+	turn = 0;
+	CreateWorld();
+})
+$("#second").on("click", function(){
+	$(".menu-item").hide();
+	turn = 1;
+	CreateWorld();
+	calculateTurn();
+})
 // all of the click commands
 window.addEventListener('click', click, false);
 function click(e){
@@ -95,15 +158,21 @@ function click(e){
     if(x < 0 || x > 700){return;}
     if(y < 0 || y > 100){return;}
     var move = getMove(x,y);
-
 	if(move == -1){return;}
-
     //make move and change turn if valid move.
 	if(makeMove(grid, move, turn)){turn = (turn + 1 )%2;}
     else{return;}
     display(grid);
-
-    calculateTurn();
+	if(complete(grid)){
+		var score = gameValue(grid);
+		if(score > 0){setTimeout(function(){alert("You Win")} ,0)}
+		else if(score < 0){setTimeout(function(){alert("You Lose")}, 0)}
+		else{setTimeout(function(){alert("Tie")}, 0)}
+		CurrentGame = false;
+		$(".menu-item").show();
+	}	
+	if(CurrentGame){setTimeout(function(){calculateTurn();},50);}
+    
    
     
 }
@@ -129,7 +198,6 @@ function getMove(x,y){
     return -1;
 }
 function makeMove(game, move, currentTurn){
-
 	var color = getColor(currentTurn)
 	for(var i = game[move].length-1; i >= 0; i-- ){
 		if(game[move][i] == "_")
@@ -140,8 +208,6 @@ function makeMove(game, move, currentTurn){
 		}
 		
 	} 
-
-    console.log("failed to make move")
 	return false;
 }
 //get the label to put in the grid for each player
@@ -150,41 +216,38 @@ function getColor(turn){
 	else if (turn == 1){return "B"}
 	else{return "_"}
 }
-
 function getMoves(game){
     var moves = [];
     for( var i = 0; i < width; i++){
         if(game[i][0] == "_"){
-
             moves.push(i);
         }
-
     }
-
     return moves;
-
 }
 function calculateTurn(){
    
-
-
     minimax(grid, 0, turn);
     makeMove(grid, choice, turn);
     turn = (turn + 1) %2
     display(grid);
-    if(complete(grid)){alert("complete")}
+    if(complete(grid)){
+		var score = gameValue(grid);
+		if(score > 0){setTimeout(function(){alert("You Win")} ,0)}
+		else if(score < 0){setTimeout(function(){alert("You Lose")}, 0)}
+		else{setTimeout(function(){alert("Tie")}, 0)}
+		CurrentGame = false;
+		$(".menu-item").show();
+	}	
 }
 function minimax(inputgrid, depth, turn){
-
-    if(depth > 5){return gameValue(inputgrid);}
-
+    if(depth > maxDepth){return gameValue(inputgrid);}
     if(complete(inputgrid)){
         return gameValue(inputgrid)
     }
     var depth = depth + 1;
     var scores = []
     var moves = []
-
     //Populate the scores array, recursing as needed
     var possiblemoves = getMoves(inputgrid);
   
@@ -198,7 +261,6 @@ function minimax(inputgrid, depth, turn){
         }
         
         
-
         makeMove(next_grid, possiblemoves[i], turn);
         
         var nextTurn = (turn + 1)%2;
@@ -206,15 +268,9 @@ function minimax(inputgrid, depth, turn){
         scores.push(minimax(next_grid, depth, nextTurn));
         
         moves.push(possiblemoves[i]);
-
     }
 
-    if(depth == 1){
-        console.log(scores);
-    }
     if (turn == 0){
-
-
         var ind = -1;
         var max = -10000;
         for(var i = 0; i < scores.length; i++){
@@ -223,13 +279,11 @@ function minimax(inputgrid, depth, turn){
                 ind = i;
             }
         }
-
         choice = moves[ind]
         return scores[ind]
     }
     else
     {
-
         var ind = -1;
         var max = 10000;
         for(var i = 0; i < scores.length; i++){
@@ -242,8 +296,6 @@ function minimax(inputgrid, depth, turn){
         choice = moves[ind]
         return scores[ind]
     }
-
-
     
 }
 function gameValue(grid){
@@ -264,7 +316,6 @@ function gameValue(grid){
                 return 1000;
         }
     }
-
     //horizontal check for win
     for (var i=0;i<grid[0].length;i++)
     {   
@@ -300,7 +351,6 @@ function gameValue(grid){
    
     // top-left to bottom-right : top right corner
     for(var colStart = 1; colStart < grid.length - 3; colStart++){
-
         count = 0;
         var row;
         var col;
@@ -451,7 +501,6 @@ function gameValue(grid){
             }
         }
     }
-
     //check if no moves left
     for(var i = 0; i < width; i++){
         if(grid[i][0] == "_"){return score;}
@@ -472,12 +521,10 @@ function complete(grid){
                 count++;
             else
                 count=0;
-
             if (count>=4)
                 return true;
         }
     }
-
     //horizontal check for win
     for (var i=0;i<grid[0].length;i++)
     {   
@@ -488,7 +535,6 @@ function complete(grid){
                 count++;
             else
                 count=0;
-
             if (count>=4)
                 return true;
         }
@@ -572,7 +618,6 @@ function complete(grid){
                 count++;
             else
                 count=0;
-
             if (count>=4)
                 return true;
         }
@@ -588,7 +633,6 @@ function complete(grid){
                 count++;
             else
                 count=0;
-
             if (count>=4)
                 return true;
         }
@@ -659,7 +703,6 @@ function complete(grid){
             }
         }
     }
-
     //check if no moves left
     for(var i = 0; i < width; i++){
         if(grid[i][0] == "_"){return false;}
