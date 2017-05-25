@@ -133,8 +133,7 @@ $("#difficulty-slider").on("change", function(){
 
 })
 $("#restart").on("click", function(){
-	console.log('restarting')
-	CreateWorld();
+	$(".menu-item").show();
 });
 $("#first").on("click", function(){
 	$(".menu-item").hide();
@@ -170,7 +169,7 @@ function click(e){
 		else if(score < 0){setTimeout(function(){alert("You Lose")}, 0)}
 		else{setTimeout(function(){alert("Tie")}, 0)}
 		CurrentGame = false;
-		$(".menu-item").show();
+	
 	}	
 	if(CurrentGame){setTimeout(function(){calculateTurn();},50);}
     
@@ -240,7 +239,7 @@ function calculateTurn(){
 		else if(score < 0){setTimeout(function(){alert("You Lose")}, 0)}
 		else{setTimeout(function(){alert("Tie")}, 0)}
 		CurrentGame = false;
-		$(".menu-item").show();
+	
 	}	
 }
 function minimax(inputgrid, depth, turn){
@@ -314,7 +313,9 @@ function gameValue(grid){
                 count++;
             else
                 count=0;
-            if(count==3){ score+=10;}
+            if(count==3 && (grid[i ][j + 1]  || grid[i][j-3])== "_"){
+                score+=50;
+            }
             if (count>=4)
                 return 1000;
         }
@@ -329,7 +330,7 @@ function gameValue(grid){
                 count++;
             else
                 count=0;
-            if(count==3){ score+=10;}
+            if(count==3 && (grid[j ][i + 1]  || grid[j][i-3])){ score+=50;}
             if (count>=4)
                 return 1000;
         }
@@ -415,7 +416,7 @@ function gameValue(grid){
                 count++;
             else
                 count=0;
-            if(count==3){ score+=10;}
+            if(count==3 && (grid[i ][j + 1]  || grid[i][j-3])){ score-=50;}
             if (count>=4)
                 return -1000;
         }
@@ -431,7 +432,7 @@ function gameValue(grid){
                 count++;
             else
                 count=0;
-            if(count==3){ score-=10;}
+            if(count==3 && (grid[j ][i + 1]  || grid[j][i-3])){ score-=50;}
             if (count>=4)
                 return -1000;
         }
@@ -445,7 +446,7 @@ function gameValue(grid){
         for( row = rowStart, col = 0; row < grid[0].length && col < grid.length; row++, col++ ){
             if(grid[col][row] == "B"){
                 count++;
-                if(count==3){ score-=10;}
+                if(count==3 ){ score-=10;}
                 if(count >= 4) return -1000;
             }
             else {
@@ -502,6 +503,19 @@ function gameValue(grid){
             else {
                 count = 0;
             }
+        }
+    }
+
+    for (var i = 0; i < grid.length; i++){
+        for (var j = 0; j < grid[0].length; j++){
+            value = 4 -  Math.abs((grid.length-1)/2.0  - i);
+            value = value * 3
+            value = value +  (4 - Math.abs((grid[0].length-1)/2.0 - j));
+            value = value / 5;
+            
+            if(grid[i][j] == "R"){score += value;}
+            if(grid[i][j] == "B"){score -= value;}
+            
         }
     }
     //check if no moves left
@@ -706,6 +720,7 @@ function complete(grid){
             }
         }
     }
+
     //check if no moves left
     for(var i = 0; i < width; i++){
         if(grid[i][0] == "_"){return false;}
