@@ -139,7 +139,8 @@ function makeMove(game, move, currentTurn){
 			return true;
 		}
 		
-	}
+	} 
+
     console.log("failed to make move")
 	return false;
 }
@@ -153,24 +154,513 @@ function getColor(turn){
 function getMoves(game){
     var moves = [];
     for( var i = 0; i < width; i++){
-        if(grid[i][0] == "_"){
+        if(game[i][0] == "_"){
+
             moves.push(i);
         }
+
     }
+
     return moves;
 
 }
 function calculateTurn(){
-    var moves = getMoves(grid);
-    var randomMove = Math.floor(Math.random()*moves.length);
-    makeMove(grid, moves[randomMove], turn);
+   
+
+
+    minimax(grid, 0, turn);
+    makeMove(grid, choice, turn);
     turn = (turn + 1) %2
     display(grid);
     if(complete(grid)){alert("complete")}
 }
-//check if any moves left
-function complete(grid){
+function minimax(inputgrid, depth, turn){
 
+    if(depth > 5){return gameValue(inputgrid);}
+
+    if(complete(inputgrid)){
+        return gameValue(inputgrid)
+    }
+    var depth = depth + 1;
+    var scores = []
+    var moves = []
+
+    //Populate the scores array, recursing as needed
+    var possiblemoves = getMoves(inputgrid);
+  
+    for (var i = 0; i < possiblemoves.length; i++)
+    {   
+     
+        var next_grid = []
+        for (var j = 0; j < inputgrid.length; j++)
+        {
+            next_grid.push(inputgrid[j].slice());
+        }
+        
+        
+
+        makeMove(next_grid, possiblemoves[i], turn);
+        
+        var nextTurn = (turn + 1)%2;
+        
+        scores.push(minimax(next_grid, depth, nextTurn));
+        
+        moves.push(possiblemoves[i]);
+
+    }
+
+    if(depth == 1){
+        console.log(scores);
+    }
+    if (turn == 0){
+
+
+        var ind = -1;
+        var max = -10000;
+        for(var i = 0; i < scores.length; i++){
+            if(scores[i] > max){
+                max = scores[i];
+                ind = i;
+            }
+        }
+
+        choice = moves[ind]
+        return scores[ind]
+    }
+    else
+    {
+
+        var ind = -1;
+        var max = 10000;
+        for(var i = 0; i < scores.length; i++){
+            if(scores[i] < max){
+                max = scores[i];
+                ind = i;
+            }
+        }
+   
+        choice = moves[ind]
+        return scores[ind]
+    }
+
+
+    
+}
+function gameValue(grid){
+    //check player 1
+    //vertical check for win
+    score = 0;
+    for (var i=0;i<grid.length;i++)
+    {   
+        var count = 0
+        for (var j=0;j<grid[0].length;j++)
+        {   
+            if (grid[i][j]=="R")
+                count++;
+            else
+                count=0;
+            if(count==3){ score+=10;}
+            if (count>=4)
+                return 1000;
+        }
+    }
+
+    //horizontal check for win
+    for (var i=0;i<grid[0].length;i++)
+    {   
+        var count = 0
+        for (var j=0;j<grid.length;j++)
+        {   
+            if (grid[j][i]=="R")
+                count++;
+            else
+                count=0;
+            if(count==3){ score+=10;}
+            if (count>=4)
+                return 1000;
+        }
+    }
+    
+    // top-left to bottom-right : bottom left corner
+    for( var rowStart = 0; rowStart < grid[0].length - 3; rowStart++){
+        var count = 0;
+        var row; 
+        var col;
+        for( row = rowStart, col = 0; row < grid[0].length && col < grid.length; row++, col++ ){
+            if(grid[col][row] == "R"){
+                count++;
+                if(count==3){ score+=10;}
+                if(count >= 4) return 1000;
+            }
+            else {
+                count = 0;
+            }
+        }
+    }
+   
+    // top-left to bottom-right : top right corner
+    for(var colStart = 1; colStart < grid.length - 3; colStart++){
+
+        count = 0;
+        var row;
+        var col;
+        for( row = 0, col = colStart; row < grid[0].length && col < grid.length; row++, col++ ){
+      
+            if(grid[col][row] == "R"){
+                count++;
+                if(count==3){ score+=10;}
+                if(count >= 4) return 1000;
+            }
+            else {
+                count = 0;
+            }
+        }
+    }
+    //bottom-left to top-right : bottom-right corner
+    for( var colStart = 0; colStart < grid.length - 3; colStart++){
+        var count = 0;
+        var row; 
+        var col;
+        for( x = colStart, y = grid[0].length-1; x < grid.length && y >0; x++, y-- ){
+            if(grid[x][y] == "R"){
+                count++;
+                if(count==3){ score+=10;}
+                if(count >= 4) return 1000;
+            }
+            else {
+                count = 0;
+            }
+        }
+    }
+    //bottom-left to top-right  :  top-left corner
+    for( var rowStart = grid[0].length - 2; rowStart > 0; rowStart--){
+        var count = 0;
+        var row; 
+        var col;
+        for( x = 0, y = rowStart; x < grid.length && y >0; x++, y-- ){
+      
+            if(grid[x][y] == "R"){
+                count++;
+                if(count==3){ score+=10;}
+                if(count >= 4) return 1000;
+            }
+            else {
+                count = 0;
+            }
+        }
+    }
+    ////////////////////////////////////////////////////
+     //check player 2
+    //vertical check for win
+  
+    for (var i=0;i<grid.length;i++)
+    {   
+        var count = 0
+        for (var j=0;j<grid[0].length;j++)
+        {   
+            if (grid[i][j]=="B")
+                count++;
+            else
+                count=0;
+            if(count==3){ score+=10;}
+            if (count>=4)
+                return -1000;
+        }
+    }
+    
+    //horizontal check for win
+    for (var i=0;i<grid[0].length;i++)
+    {   
+        var count = 0
+        for (var j=0;j<grid.length;j++)
+        {   
+            if (grid[j][i]=="B")
+                count++;
+            else
+                count=0;
+            if(count==3){ score-=10;}
+            if (count>=4)
+                return -1000;
+        }
+    }
+    
+    // top-left to bottom-right : bottom left corner
+    for( var rowStart = 0; rowStart < grid[0].length - 3; rowStart++){
+        var count = 0;
+        var row; 
+        var col;
+        for( row = rowStart, col = 0; row < grid[0].length && col < grid.length; row++, col++ ){
+            if(grid[col][row] == "B"){
+                count++;
+                if(count==3){ score-=10;}
+                if(count >= 4) return -1000;
+            }
+            else {
+                count = 0;
+            }
+        }
+    }
+   
+    // top-left to bottom-right : top right corner
+    for(var colStart = 1; colStart < grid.length - 3; colStart++){
+     
+        count = 0;
+        var row;
+        var col;
+        for( row = 0, col = colStart; row < grid[0].length && col < grid.length; row++, col++ ){
+      
+            if(grid[col][row] == "B"){
+                count++;
+                if(count==3){ score-=10;}
+                if(count >= 4) return -1000;
+            }
+            else {
+                count = 0;
+            }
+        }
+    }
+    //bottom-left to top-right : bottom-right corner
+    for( var colStart = 0; colStart < grid.length - 3; colStart++){
+        var count = 0;
+        var row; 
+        var col;
+        for( x = colStart, y = grid[0].length-1; x < grid.length && y >0; x++, y-- ){
+            if(grid[x][y] == "B"){
+                count++;
+                if(count==3){ score-=10;}
+                if(count >= 4) return -1000;
+            }
+            else {
+                count = 0;
+            }
+        }
+    }
+    //bottom-left to top-right  :  top-left corner
+    for( var rowStart = grid[0].length - 2; rowStart > 0; rowStart--){
+        var count = 0;
+        var row; 
+        var col;
+        for( x = 0, y = rowStart; x < grid.length && y >0; x++, y-- ){
+            if(grid[x][y] == "B"){
+                count++;
+                if(count==3){ score-=10;}
+                if(count >= 4) return -1000;
+            }
+            else {
+                count = 0;
+            }
+        }
+    }
+
+    //check if no moves left
+    for(var i = 0; i < width; i++){
+        if(grid[i][0] == "_"){return score;}
+    }
+    return 0;
+}
+//check if any moves left or if a player has 4 in a row
+function complete(grid){
+    //check player 1
+    //vertical check for win
+  
+    for (var i=0;i<grid.length;i++)
+    {   
+        var count = 0
+        for (var j=0;j<grid[0].length;j++)
+        {   
+            if (grid[i][j]=="R")
+                count++;
+            else
+                count=0;
+
+            if (count>=4)
+                return true;
+        }
+    }
+
+    //horizontal check for win
+    for (var i=0;i<grid[0].length;i++)
+    {   
+        var count = 0
+        for (var j=0;j<grid.length;j++)
+        {   
+            if (grid[j][i]=="R")
+                count++;
+            else
+                count=0;
+
+            if (count>=4)
+                return true;
+        }
+    }
+    
+    // top-left to bottom-right : bottom left corner
+    for( var rowStart = 0; rowStart < grid[0].length - 3; rowStart++){
+        var count = 0;
+        var row; 
+        var col;
+        for( row = rowStart, col = 0; row < grid[0].length && col < grid.length; row++, col++ ){
+            if(grid[col][row] == "R"){
+                count++;
+                if(count >= 4) return true;
+            }
+            else {
+                count = 0;
+            }
+        }
+    }
+   
+    // top-left to bottom-right : top right corner
+    for(var colStart = 1; colStart < grid.length - 3; colStart++){
+  
+        count = 0;
+        var row;
+        var col;
+        for( row = 0, col = colStart; row < grid[0].length && col < grid.length; row++, col++ ){
+      
+            if(grid[col][row] == "R"){
+                count++;
+                if(count >= 4) return true;
+            }
+            else {
+                count = 0;
+            }
+        }
+    }
+    //bottom-left to top-right : bottom-right corner
+    for( var colStart = 0; colStart < grid.length - 3; colStart++){
+        var count = 0;
+        var row; 
+        var col;
+        for( x = colStart, y = grid[0].length-1; x < grid.length && y >0; x++, y-- ){
+        
+            if(grid[x][y] == "R"){
+                count++;
+                if(count >= 4) return true;
+            }
+            else {
+                count = 0;
+            }
+        }
+    }
+    //bottom-left to top-right  :  top-left corner
+    for( var rowStart = grid[0].length - 2; rowStart > 0; rowStart--){
+        var count = 0;
+        var row; 
+        var col;
+        for( x = 0, y = rowStart; x < grid.length && y >0; x++, y-- ){
+            
+            if(grid[x][y] == "R"){
+                count++;
+                if(count >= 4) return true;
+            }
+            else {
+                count = 0;
+            }
+        }
+    }
+    ////////////////////////////////////////////////////
+     //check player 2
+    //vertical check for win
+  
+    for (var i=0;i<grid.length;i++)
+    {   
+        var count = 0
+        for (var j=0;j<grid[0].length;j++)
+        {   
+            if (grid[i][j]=="B")
+                count++;
+            else
+                count=0;
+
+            if (count>=4)
+                return true;
+        }
+    }
+    
+    //horizontal check for win
+    for (var i=0;i<grid[0].length;i++)
+    {   
+        var count = 0
+        for (var j=0;j<grid.length;j++)
+        {   
+            if (grid[j][i]=="B")
+                count++;
+            else
+                count=0;
+
+            if (count>=4)
+                return true;
+        }
+    }
+    
+    // top-left to bottom-right : bottom left corner
+    for( var rowStart = 0; rowStart < grid[0].length - 3; rowStart++){
+        var count = 0;
+        var row; 
+        var col;
+        for( row = rowStart, col = 0; row < grid[0].length && col < grid.length; row++, col++ ){
+            if(grid[col][row] == "B"){
+                count++;
+                if(count >= 4) return true;
+            }
+            else {
+                count = 0;
+            }
+        }
+    }
+   
+    // top-left to bottom-right : top right corner
+    for(var colStart = 1; colStart < grid.length - 3; colStart++){
+    
+        count = 0;
+        var row;
+        var col;
+        for( row = 0, col = colStart; row < grid[0].length && col < grid.length; row++, col++ ){
+      
+            if(grid[col][row] == "B"){
+                count++;
+                if(count >= 4) return true;
+            }
+            else {
+                count = 0;
+            }
+        }
+    }
+    //bottom-left to top-right : bottom-right corner
+    for( var colStart = 0; colStart < grid.length - 3; colStart++){
+        var count = 0;
+        var row; 
+        var col;
+        for( x = colStart, y = grid[0].length-1; x < grid.length && y >0; x++, y-- ){
+            
+            if(grid[x][y] == "B"){
+                count++;
+                if(count >= 4) return true;
+            }
+            else {
+                count = 0;
+            }
+        }
+    }
+    //bottom-left to top-right  :  top-left corner
+    for( var rowStart = grid[0].length - 2; rowStart > 0; rowStart--){
+        var count = 0;
+        var row; 
+        var col;
+        for( x = 0, y = rowStart; x < grid.length && y >0; x++, y-- ){
+        
+            if(grid[x][y] == "B"){
+                count++;
+                if(count >= 4) return true;
+            }
+            else {
+                count = 0;
+            }
+        }
+    }
+
+    //check if no moves left
     for(var i = 0; i < width; i++){
         if(grid[i][0] == "_"){return false;}
     }
