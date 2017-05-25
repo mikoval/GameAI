@@ -51,7 +51,7 @@ function createGrid(width, height){
 			arr[i].push("_")
         }
     }
-	console.log(arr);
+
     return arr;
 }
 // this function has to be called every time the game state is updated. 
@@ -95,12 +95,15 @@ function click(e){
     if(x < 0 || x > 700){return;}
     if(y < 0 || y > 100){return;}
     var move = getMove(x,y);
-	if(!move){return;}
-	if(makeMove(grid, move, turn))
-	{
-		turn = (turn + 1 )%2;
-	}
+
+	if(move == -1){return;}
+
+    //make move and change turn if valid move.
+	if(makeMove(grid, move, turn)){turn = (turn + 1 )%2;}
+    else{return;}
     display(grid);
+
+    calculateTurn();
    
     
 }
@@ -123,23 +126,55 @@ function getMove(x,y){
 			return i;
 		}
 	}
+    return -1;
 }
 function makeMove(game, move, currentTurn){
+
 	var color = getColor(currentTurn)
 	for(var i = game[move].length-1; i >= 0; i-- ){
 		if(game[move][i] == "_")
 		{
+            
 			game[move][i] = color;
 			return true;
 		}
 		
 	}
+    console.log("failed to make move")
 	return false;
 }
+//get the label to put in the grid for each player
 function getColor(turn){
 	if(turn == 0){return "R";}
 	else if (turn == 1){return "B"}
 	else{return "_"}
+}
+
+function getMoves(game){
+    var moves = [];
+    for( var i = 0; i < width; i++){
+        if(grid[i][0] == "_"){
+            moves.push(i);
+        }
+    }
+    return moves;
+
+}
+function calculateTurn(){
+    var moves = getMoves(grid);
+    var randomMove = Math.floor(Math.random()*moves.length);
+    makeMove(grid, moves[randomMove], turn);
+    turn = (turn + 1) %2
+    display(grid);
+    if(complete(grid)){alert("complete")}
+}
+//check if any moves left
+function complete(grid){
+
+    for(var i = 0; i < width; i++){
+        if(grid[i][0] == "_"){return false;}
+    }
+    return true;
 }
 </script>
 </html>
